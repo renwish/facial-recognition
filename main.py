@@ -45,3 +45,38 @@ def classify_face(im):
 
     face_locations = face_recognition.face_locations(img)
     unknown_face_encodings = face_recognition.face_encodings(img, face_locations)
+
+    face_names = []
+    for face_encoding in unknown_face_encodings:
+        # check if the face is a match for an encoded face
+        matches = face_recognition.compare_faces(faces_encoded, face_encoding)
+        name = "Unknown"
+
+        # use the known face with the smallest distance to the new face
+        face_distances = face_recognition.face_distance(faces_encoded, face_encoding)
+        best_match_index = np.argmin(face_distances)
+        if matches[best_match_index]:
+            name = known_face_names[best_match_index]
+
+        face_names.append(name)
+
+        for (top, right, bottom, left), name in zip(face_locations, face_names):
+            # draws a box around the face
+            cv2.rectangle(img, (left - 20, top - 20), (right + 20, bottom + 20), (255, 0, 0), 2)
+
+            # Labels the face with the name
+            cv2.rectangle(img, (left - 20, bottom - 15), (right + 20, bottom + 20), (255, 0, 0), cv2.FILLED)
+            font = cv2.FONT_HERSHEY_DUPLEX
+            cv2.putText(img, name, (left - 20, bottom + 15), font, 1.0, (255, 255, 255), 2)
+
+    # displays the results
+    while True:
+
+        cv2.imshow('Video', img)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            return face_names
+
+
+print(classify_face("test.jpg"))
+
+
